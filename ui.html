@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Figma Code Generator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      font-size: 14px;
+      color: #333;
+      background-color: #fff;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: #666;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    }
+
+    .close-btn:hover {
+      background-color: #f0f0f0;
+      color: #333;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .tab {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      flex: 1;
+      text-align: center;
+    }
+
+    .tab.active {
+      border-bottom: 2px solid #007AFF;
+      color: #007AFF;
+    }
+
+    .tab-content {
+      display: none;
+      padding: 16px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .preview-container {
+      text-align: center;
+      margin-bottom: 20px;
+      padding: 16px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+    }
+
+    .preview-image {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      background-color: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 4px;
+    }
+
+    .code-container {
+      margin-bottom: 20px;
+    }
+
+    .code-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .code-title {
+      font-weight: 600;
+    }
+
+    .copy-btn {
+      background-color: #f0f0f0;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .copy-btn:hover {
+      background-color: #e0e0e0;
+    }
+
+    .code-block {
+      width: 100%;
+      height: 120px;
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      resize: vertical;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow-x: auto;
+    }
+
+    .options {
+      margin: 16px 0;
+      padding: 12px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
+      background-color: #f9f9f9;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .option:last-child {
+      margin-bottom: 0;
+    }
+
+    .option input {
+      margin-right: 8px;
+    }
+
+    .tokens-container {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .token-item {
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .token-name {
+      font-weight: 500;
+      color: #007AFF;
+    }
+
+    .token-value {
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .error {
+      background-color: #ffebee;
+      color: #c62828;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 16px 0;
+      text-align: center;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+
+    .empty-state p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="title">Figma Code Generator</div>
+    <button class="close-btn" id="close-btn">×</button>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="current-element">Current Element</div>
+    <div class="tab" data-tab="component-tokens">Component Tokens</div>
+    <div class="tab" data-tab="all-variables">All Variables</div>
+  </div>
+
+  <!-- Current Element Tab -->
+  <div class="tab-content active" id="current-element-tab">
+    <div id="current-element-content">
+      <div class="loading" id="loading-current">
+        <p>Loading...</p>
+      </div>
+      
+      <div class="preview-container">
+        <img id="preview-image" class="preview-image" src="" alt="Element Preview">
+      </div>
+
+      <div class="options">
+        <div class="option">
+          <input type="checkbox" id="use-variables" checked>
+          <label for="use-variables">Use Figma Variables</label>
+        </div>
+      </div>
+
+      <div class="code-container">
+        <div class="code-header">
+          <div class="code-title">HTML</div>
+          <button class="copy-btn" id="copy-html">Copy HTML</button>
+        </div>
+        <textarea id="html-code" class="code-block" readonly></textarea>
+      </div>
+
+      <div class="code-container">
+        <div class="code-header">
+          <div class="code-title">CSS/SCSS</div>
+          <button class="copy-btn" id="copy-css">Copy CSS/SCSS</button>
+        </div>
+        <textarea id="css-code" class="code-block" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Component Tokens Tab -->
+  <div class="tab-content" id="component-tokens-tab">
+    <div id="component-tokens-content">
+      <div class="loading" id="loading-tokens">
+        <p>Loading...</p>
+      </div>
+      
+      <div class="code-container">
+        <div class="code-header">
+          <div class="code-title">Component Tokens</div>
+          <button class="copy-btn" id="copy-tokens">Copy Tokens</button>
+        </div>
+        <textarea id="tokens-code" class="code-block" readonly>:root {
+  /* Component tokens will appear here */
+}</textarea>
+      </div>
+      
+      <div class="tokens-container" id="tokens-list"></div>
+    </div>
+  </div>
+
+  <!-- All Variables Tab -->
+  <div class="tab-content" id="all-variables-tab">
+    <div id="all-variables-content">
+      <div class="loading" id="loading-variables">
+        <p>Loading...</p>
+      </div>
+      
+      <div class="code-container">
+        <div class="code-header">
+          <div class="code-title">All Variables</div>
+          <button class="copy-btn" id="copy-all-variables">Copy All</button>
+        </div>
+        <textarea id="variables-code" class="code-block" readonly>/* All variables will appear here */</textarea>
+      </div>
+      
+      <div class="tokens-container" id="all-variables-list"></div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const closeBtn = document.getElementById('close-btn');
+    const useVariablesCheckbox = document.getElementById('use-variables');
+    const htmlCode = document.getElementById('html-code');
+    const cssCode = document.getElementById('css-code');
+    const previewImage = document.getElementById('preview-image');
+    const copyHtmlBtn = document.getElementById('copy-html');
+    const copyCssBtn = document.getElementById('copy-css');
+    const copyTokensBtn = document.getElementById('copy-tokens');
+    const copyAllVariablesBtn = document.getElementById('copy-all-variables');
+    const tokensCode = document.getElementById('tokens-code');
+    const variablesCode = document.getElementById('variables-code');
+    const tokensList = document.getElementById('tokens-list');
+    const allVariablesList = document.getElementById('all-variables-list');
+    const loadingCurrent = document.getElementById('loading-current');
+    const loadingTokens = document.getElementById('loading-tokens');
+    const loadingVariables = document.getElementById('loading-variables');
+
+    // Tab switching
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.getAttribute('data-tab');
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Show active content
+        tabContents.forEach(content => {
+          content.classList.remove('active');
+          if (content.id === `${tabName}-tab`) {
+            content.classList.add('active');
+            
+            // Load content based on tab
+            if (tabName === 'current-element') {
+              loadCurrentElement();
+            } else if (tabName === 'component-tokens') {
+              loadComponentTokens();
+            } else if (tabName === 'all-variables') {
+              loadAllVariables();
+            }
+          }
+        });
+      });
+    });
+
+    // Close button
+    closeBtn.addEventListener('click', () => {
+      parent.postMessage({ pluginMessage: { type: 'close-plugin' } }, '*');
+    });
+
+    // Use variables checkbox
+    useVariablesCheckbox.addEventListener('change', () => {
+      loadCurrentElement();
+    });
+
+    // Copy buttons
+    copyHtmlBtn.addEventListener('click', () => {
+      htmlCode.select();
+      document.execCommand('copy');
+      showCopiedMessage('HTML copied to clipboard!');
+    });
+
+    copyCssBtn.addEventListener('click', () => {
+      cssCode.select();
+      document.execCommand('copy');
+      showCopiedMessage('CSS/SCSS copied to clipboard!');
+    });
+
+    copyTokensBtn.addEventListener('click', () => {
+      tokensCode.select();
+      document.execCommand('copy');
+      showCopiedMessage('Tokens copied to clipboard!');
+    });
+
+    copyAllVariablesBtn.addEventListener('click', () => {
+      variablesCode.select();
+      document.execCommand('copy');
+      showCopiedMessage('All variables copied to clipboard!');
+    });
+
+    // Initial load
+    window.addEventListener('load', () => {
+      loadCurrentElement();
+    });
+
+    // Load current element data
+    function loadCurrentElement() {
+      loadingCurrent.style.display = 'block';
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'get-selection',
+          useVariables: useVariablesCheckbox.checked
+        } 
+      }, '*');
+    }
+
+    // Load component tokens
+    function loadComponentTokens() {
+      loadingTokens.style.display = 'block';
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'get-component-tokens'
+        } 
+      }, '*');
+    }
+
+    // Load all variables
+    function loadAllVariables() {
+      loadingVariables.style.display = 'block';
+      parent.postMessage({ 
+        pluginMessage: { 
+          type: 'get-all-variables'
+        } 
+      }, '*');
+    }
+
+    // Handle messages from plugin
+    window.onmessage = (event) => {
+      const message = event.data.pluginMessage;
+      
+      if (message.type === 'selection-data') {
+        // Hide loading
+        loadingCurrent.style.display = 'none';
+        
+        // Update preview
+        if (message.previewUrl) {
+          previewImage.src = message.previewUrl;
+        }
+        
+        // Update code
+        htmlCode.value = message.html || '';
+        cssCode.value = message.css || '';
+      } 
+      else if (message.type === 'no-selection') {
+        loadingCurrent.style.display = 'none';
+        htmlCode.value = '';
+        cssCode.value = '';
+        previewImage.src = '';
+        
+        // Show error message
+        htmlCode.value = '/* No element selected */';
+        cssCode.value = '/* Select an element on the canvas */';
+      }
+      else if (message.type === 'component-tokens') {
+        loadingTokens.style.display = 'none';
+        
+        if (message.tokens && message.tokens.length > 0) {
+          // Generate CSS for tokens
+          let cssTokens = ':root {\n';
+          message.tokens.forEach(token => {
+            cssTokens += `  --${token.name}: ${token.value};\n`;
+          });
+          cssTokens += '}';
+          
+          tokensCode.value = cssTokens;
+          
+          // Populate tokens list
+          tokensList.innerHTML = '';
+          message.tokens.forEach(token => {
+            const tokenElement = document.createElement('div');
+            tokenElement.className = 'token-item';
+            tokenElement.innerHTML = `
+              <span class="token-name">--${token.name}</span>
+              <span class="token-value">${token.value}</span>
+            `;
+            tokensList.appendChild(tokenElement);
+          });
+        } else {
+          tokensCode.value = '/* No tokens found in selected element */';
+          tokensList.innerHTML = '<div class="empty-state"><p>No tokens found in selected element</p></div>';
+        }
+      }
+      else if (message.type === 'all-variables') {
+        loadingVariables.style.display = 'none';
+        
+        if (message.variables && message.variables.length > 0) {
+          // Group variables by type
+          const groupedVariables = {};
+          message.variables.forEach(variable => {
+            if (!groupedVariables[variable.type]) {
+              groupedVariables[variable.type] = [];
+            }
+            groupedVariables[variable.type].push(variable);
+          });
+          
+          // Generate CSS for all variables
+          let cssVariables = '';
+          for (const [type, vars] of Object.entries(groupedVariables)) {
+            cssVariables += `/* ${type} Variables */\n`;
+            cssVariables += ':root {\n';
+            vars.forEach(variable => {
+              cssVariables += `  --${variable.name}: ${variable.value};\n`;
+            });
+            cssVariables += '}\n\n';
+          }
+          
+          variablesCode.value = cssVariables;
+          
+          // Populate variables list
+          allVariablesList.innerHTML = '';
+          for (const [type, vars] of Object.entries(groupedVariables)) {
+            const typeHeader = document.createElement('h3');
+            typeHeader.textContent = type;
+            typeHeader.style.margin = '16px 0 8px 0';
+            typeHeader.style.paddingTop = '8px';
+            typeHeader.style.borderTop = vars === message.variables ? 'none' : '1px solid #eee';
+            allVariablesList.appendChild(typeHeader);
+            
+            vars.forEach(variable => {
+              const tokenElement = document.createElement('div');
+              tokenElement.className = 'token-item';
+              tokenElement.innerHTML = `
+                <span class="token-name">--${variable.name}</span>
+                <span class="token-value">${variable.value}</span>
+              `;
+              allVariablesList.appendChild(tokenElement);
+            });
+          }
+        } else {
+          variablesCode.value = '/* No variables found in document */';
+          allVariablesList.innerHTML = '<div class="empty-state"><p>No variables found in document</p></div>';
+        }
+      }
+    };
+
+    // Show copied message
+    function showCopiedMessage(message) {
+      // Create temporary element to show message
+      const tempElement = document.createElement('div');
+      tempElement.textContent = message;
+      tempElement.style.position = 'fixed';
+      tempElement.style.bottom = '20px';
+      tempElement.style.left = '50%';
+      tempElement.style.transform = 'translateX(-50%)';
+      tempElement.style.backgroundColor = '#333';
+      tempElement.style.color = '#fff';
+      tempElement.style.padding = '8px 16px';
+      tempElement.style.borderRadius = '4px';
+      tempElement.style.zIndex = '1000';
+      
+      document.body.appendChild(tempElement);
+      
+      setTimeout(() => {
+        document.body.removeChild(tempElement);
+      }, 2000);
+    }
+  </script>
+</body>
+</html>

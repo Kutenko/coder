@@ -1,0 +1,16 @@
+{
+  "name": "Figma Code Generator",
+  "id": "figma-code-generator",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "capabilities": [
+    "codegen"
+  ],
+  "enablePrivatePluginApi": true,
+  "networkAccess": {
+    "allowedDomains": [
+      "none"
+    ]
+  }
+}
