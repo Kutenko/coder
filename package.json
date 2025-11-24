@@ -1,0 +1,22 @@
+{
+  "name": "figma-code-generator",
+  "version": "1.0.0",
+  "description": "A Figma plugin that generates HTML/CSS/SCSS code from Figma elements with support for Figma Variables",
+  "main": "code.js",
+  "scripts": {
+    "build": "echo 'Build completed'",
+    "dev": "echo 'Development mode'"
+  },
+  "keywords": [
+    "figma",
+    "plugin",
+    "code-generation",
+    "css",
+    "scss",
+    "html",
+    "figma-variables"
+  ],
+  "author": "Figma Code Generator",
+  "license": "MIT",
+  "devDependencies": {}
+}
