@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Color Palette Generator</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f0f0f0;
+      color: #333;
+      overflow-x: hidden;
+    }
+    
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+    
+    h1 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #1a1a1a;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    input[type="text"],
+    input[type="range"],
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    input[type="range"] {
+      padding: 0;
+    }
+    
+    .hsl-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    
+    .hsl-controls > div {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .hsl-controls label {
+      font-size: 12px;
+      margin-bottom: 3px;
+    }
+    
+    .hsl-controls input {
+      margin-top: 0;
+    }
+    
+    .color-preview {
+      width: 30px;
+      height: 30px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-left: 10px;
+      vertical-align: middle;
+    }
+    
+    .add-color-btn {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      width: 100%;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+    
+    .add-color-btn:hover {
+      background-color: #45a049;
+    }
+    
+    .color-list {
+      margin-top: 20px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      background-color: white;
+    }
+    
+    .color-item {
+      display: flex;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .color-item:last-child {
+      border-bottom: none;
+    }
+    
+    .color-swatch {
+      width: 20px;
+      height: 20px;
+      border-radius: 3px;
+      margin-right: 10px;
+      border: 1px solid #ddd;
+    }
+    
+    .color-info {
+      flex-grow: 1;
+    }
+    
+    .color-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    .color-values {
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    
+    .btn-generate {
+      background-color: #2196F3;
+      color: white;
+    }
+    
+    .btn-generate:hover {
+      background-color: #0b7dda;
+    }
+    
+    .btn-export {
+      background-color: #FF9800;
+      color: white;
+    }
+    
+    .btn-export:hover {
+      background-color: #e68900;
+    }
+    
+    .btn-cancel {
+      background-color: #f44336;
+      color: white;
+    }
+    
+    .btn-cancel:hover {
+      background-color: #d32f2f;
+    }
+    
+    .palette-preview {
+      margin-top: 20px;
+    }
+    
+    .palette-title {
+      font-size: 16px;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+    
+    .shade-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    
+    .shade-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 40px;
+    }
+    
+    .shade-color {
+      width: 30px;
+      height: 30px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    
+    .shade-label {
+      font-size: 10px;
+      margin-top: 3px;
+      text-align: center;
+    }
+    
+    .notification {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      display: none;
+    }
+    
+    .notification.success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Color Palette Generator</h1>
+    
+    <div class="form-group">
+      <label for="colorName">Color Name:</label>
+      <input type="text" id="colorName" placeholder="e.g. Primary, Background, etc.">
+    </div>
+    
+    <div class="form-group">
+      <label>Color (HSL):</label>
+      <div class="hsl-controls">
+        <div>
+          <label for="hue">H (0-360):</label>
+          <input type="range" id="hue" min="0" max="360" value="180">
+        </div>
+        <div>
+          <label for="saturation">S (0-100):</label>
+          <input type="range" id="saturation" min="0" max="100" value="50">
+        </div>
+        <div>
+          <label for="lightness">L (0-100):</label>
+          <input type="range" id="lightness" min="0" max="100" value="50">
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label for="shadeCount">Number of Shades (1-15):</label>
+      <input type="number" id="shadeCount" min="1" max="15" value="5">
+    </div>
+    
+    <button id="addColorBtn" class="add-color-btn">Add Color</button>
+    
+    <div class="color-list" id="colorList">
+      <div class="empty-state">No colors added yet</div>
+    </div>
+    
+    <div class="action-buttons">
+      <button id="generateBtn" class="btn btn-generate">Generate Palette</button>
+      <button id="exportBtn" class="btn btn-export">Export to Styles & Tokens</button>
+      <button id="cancelBtn" class="btn btn-cancel">Cancel</button>
+    </div>
+    
+    <div id="palettePreview" class="palette-preview" style="display: none;">
+      <div class="palette-title">Generated Palette Preview:</div>
+      <div id="shadeContainer" class="shade-container"></div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const colorNameInput = document.getElementById('colorName');
+    const hueInput = document.getElementById('hue');
+    const saturationInput = document.getElementById('saturation');
+    const lightnessInput = document.getElementById('lightness');
+    const shadeCountInput = document.getElementById('shadeCount');
+    const addColorBtn = document.getElementById('addColorBtn');
+    const colorList = document.getElementById('colorList');
+    const generateBtn = document.getElementById('generateBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const palettePreview = document.getElementById('palettePreview');
+    const shadeContainer = document.getElementById('shadeContainer');
+    const notification = document.getElementById('notification');
+    
+    // Store added colors
+    let addedColors = [];
+    
+    // Update color preview based on HSL values
+    function updateColorPreview() {
+      const h = parseInt(hueInput.value);
+      const s = parseInt(saturationInput.value);
+      const l = parseInt(lightnessInput.value);
+      const rgb = hslToRgb(h, s, l);
+      const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+      
+      // Update background of a preview element if we had one
+      // For now we just store the values
+    }
+    
+    // Event listeners for HSL sliders
+    hueInput.addEventListener('input', updateColorPreview);
+    saturationInput.addEventListener('input', updateColorPreview);
+    lightnessInput.addEventListener('input', updateColorPreview);
+    
+    // Add color button
+    addColorBtn.addEventListener('click', () => {
+      const name = colorNameInput.value.trim();
+      if (!name) {
+        showNotification('Please enter a color name', 'error');
+        return;
+      }
+      
+      const hue = parseInt(hueInput.value);
+      const saturation = parseInt(saturationInput.value);
+      const lightness = parseInt(lightnessInput.value);
+      const shadeCount = parseInt(shadeCountInput.value);
+      
+      if (shadeCount < 1 || shadeCount > 15) {
+        showNotification('Shade count must be between 1 and 15', 'error');
+        return;
+      }
+      
+      const colorEntry = {
+        id: Date.now().toString(),
+        name: name,
+        hue: hue,
+        saturation: saturation,
+        lightness: lightness,
+        shadeCount: shadeCount
+      };
+      
+      addedColors.push(colorEntry);
+      renderColorList();
+      
+      // Reset form
+      colorNameInput.value = '';
+      hueInput.value = 180;
+      saturationInput.value = 50;
+      lightnessInput.value = 50;
+      shadeCountInput.value = 5;
+      updateColorPreview();
+      
+      showNotification('Color added successfully!', 'success');
+    });
+    
+    // Render the list of added colors
+    function renderColorList() {
+      if (addedColors.length === 0) {
+        colorList.innerHTML = '<div class="empty-state">No colors added yet</div>';
+        return;
+      }
+      
+      colorList.innerHTML = '';
+      addedColors.forEach(color => {
+        const rgb = hslToRgb(color.hue, color.saturation, color.lightness);
+        const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+        
+        const colorItem = document.createElement('div');
+        colorItem.className = 'color-item';
+        colorItem.innerHTML = `
+          <div class="color-swatch" style="background-color: ${hex}"></div>
+          <div class="color-info">
+            <div class="color-name">${color.name}</div>
+            <div class="color-values">H: ${color.hue}°, S: ${color.saturation}%, L: ${color.lightness}% | ${color.shadeCount} shades</div>
+          </div>
+        `;
+        colorList.appendChild(colorItem);
+      });
+    }
+    
+    // Generate palette button
+    generateBtn.addEventListener('click', () => {
+      if (addedColors.length === 0) {
+        showNotification('Please add at least one color first', 'error');
+        return;
+      }
+      
+      // Send message to main thread to generate palette
+      parent.postMessage({
+        pluginMessage: {
+          type: 'generate-palette'
+        }
+      }, '*');
+    });
+    
+    // Export button
+    exportBtn.addEventListener('click', () => {
+      if (addedColors.length === 0) {
+        showNotification('Please add at least one color first', 'error');
+        return;
+      }
+      
+      // Send message to main thread to export
+      parent.postMessage({
+        pluginMessage: {
+          type: 'export'
+        }
+      }, '*');
+    });
+    
+    // Cancel button
+    cancelBtn.addEventListener('click', () => {
+      parent.postMessage({
+        pluginMessage: {
+          type: 'cancel'
+        }
+      }, '*');
+    });
+    
+    // Handle messages from main thread
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      
+      if (msg.type === 'palette-generated') {
+        showPalettePreview(msg.colors);
+      } else if (msg.type === 'export-complete') {
+        showNotification(`Exported ${msg.count} colors to styles and tokens!`, 'success');
+      }
+    };
+    
+    // Show palette preview
+    function showPalettePreview(colors) {
+      palettePreview.style.display = 'block';
+      shadeContainer.innerHTML = '';
+      
+      colors.forEach(color => {
+        const shadeItem = document.createElement('div');
+        shadeItem.className = 'shade-item';
+        shadeItem.innerHTML = `
+          <div class="shade-color" style="background-color: ${color.hex}"></div>
+          <div class="shade-label">${color.name}</div>
+        `;
+        shadeContainer.appendChild(shadeItem);
+      });
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+      notification.textContent = message;
+      notification.className = `notification ${type}`;
+      
+      // Auto hide success notifications after 3 seconds
+      if (type === 'success') {
+        setTimeout(() => {
+          notification.className = 'notification';
+        }, 3000);
+      }
+    }
+    
+    // Helper function to convert HSL to RGB
+    function hslToRgb(h, s, l) {
+      h /= 360;
+      s /= 100;
+      l /= 100;
+      
+      const a = s * Math.min(l, 1 - l);
+      const f = n => {
+        const k = (n + h / (1/3)) % 12;
+        return l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      };
+      
+      return {
+        r: Math.round(f(0) * 255),
+        g: Math.round(f(8) * 255),
+        b: Math.round(f(4) * 255)
+      };
+    }
+    
+    // Helper function to convert RGB to Hex
+    function rgbToHex(r, g, b) {
+      return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+    }
+    
+    // Initialize color preview
+    updateColorPreview();
+  </script>
+</body>
+</html>
