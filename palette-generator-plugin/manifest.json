@@ -1,0 +1,14 @@
+{
+  "name": "Color Palette Generator",
+  "id": "palette-generator",
+  "version": "1.0.0",
+  "api": "1.0.0",
+  "main": "main.js",
+  "ui": "ui.html",
+  "description": "Generate color palettes with customizable HSL colors and multiple shades",
+  "author": "Plugin Developer",
+  "permissions": [
+    "styles",
+    "tokens"
+  ]
+}
