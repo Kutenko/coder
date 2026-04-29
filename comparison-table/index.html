@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таблица сравнения вариантов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
+        }
+
+        .section h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 10px 15px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="number"] {
+            width: 80px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button.delete-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        .items-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .item-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .item-tag button {
+            background: #f5576c;
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #dee2e6;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        td:first-child {
+            font-weight: 600;
+            text-align: left;
+            background: #f8f9fa;
+        }
+
+        .score-input {
+            width: 70px;
+            text-align: center;
+        }
+
+        .total-score {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .success {
+            background-color: #d4edda !important;
+            color: #155724;
+        }
+
+        .medium {
+            background-color: #fff3cd !important;
+            color: #856404;
+        }
+
+        .failure {
+            background-color: #f8d7da !important;
+            color: #721c24;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .weight-display {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Таблица сравнения вариантов</h1>
+
+        <!-- Секция добавления вариантов -->
+        <div class="section">
+            <h2>1️⃣ Добавить варианты</h2>
+            <div class="input-group">
+                <input type="text" id="variantInput" placeholder="Название варианта">
+                <button onclick="addVariant()">Добавить вариант</button>
+            </div>
+            <div class="items-list" id="variantsList"></div>
+        </div>
+
+        <!-- Секция добавления характеристик -->
+        <div class="section">
+            <h2>2️⃣ Добавить характеристики и коэффициенты важности</h2>
+            <div class="input-group">
+                <input type="text" id="characteristicInput" placeholder="Название характеристики">
+                <input type="number" id="weightInput" placeholder="Вес (1-10)" min="1" max="10" value="5">
+                <button onclick="addCharacteristic()">Добавить характеристику</button>
+            </div>
+            <div class="items-list" id="characteristicsList"></div>
+        </div>
+
+        <!-- Таблица сравнения -->
+        <div class="section">
+            <h2>3️⃣ Оценка вариантов</h2>
+            <div id="tableContainer">
+                <div class="empty-state">
+                    Добавьте хотя бы один вариант и одну характеристику для начала работы
+                </div>
+            </div>
+            <button class="calculate-btn" onclick="calculateScores()" id="calculateBtn" style="display: none;">
+                🎯 Рассчитать результаты
+            </button>
+        </div>
+
+        <!-- Легенда -->
+        <div class="legend">
+            <div class="legend-item success">
+                <div class="legend-color" style="background: #d4edda;"></div>
+                <span>Успешный (>70% от макс.)</span>
+            </div>
+            <div class="legend-item medium">
+                <div class="legend-color" style="background: #fff3cd;"></div>
+                <span>Средний (40-70% от макс.)</span>
+            </div>
+            <div class="legend-item failure">
+                <div class="legend-color" style="background: #f8d7da;"></div>
+                <span>Не успешный (<40% от макс.)</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
